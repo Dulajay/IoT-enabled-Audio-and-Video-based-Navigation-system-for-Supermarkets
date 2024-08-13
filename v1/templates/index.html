@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Nexera</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .header {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .header .info {
+            background-color: transparent;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .title {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2em;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: left;
+            margin-top: 100px;
+        }
+        .login-form {
+            margin-left: 20px;
+        }
+        .login-form input[type="text"],
+        .login-form input[type="password"] {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .login-form button {
+            display: block;
+            margin: 20px 0;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .login-form button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">Welcome to Explore navigator</div>
+    <div class="header">
+        <div class="info">
+            <i class="fas fa-battery-half"></i>
+            <span id="battery-level">75%</span>
+        </div>
+        <div class="info">
+            <i class="fas fa-clock"></i>
+            <span id="time">12:00 PM</span>
+        </div>
+    </div>
+    <div class="container">
+        <img src="{{ url_for('static', filename='banner.png') }}" alt="Banner Image" style="max-width: 35%; height: auto;">
+        <form class="login-form" method="post" action="{{ url_for('login') }}">
+            <input type="text" name="login-id" id="login-id" placeholder="Enter Login ID" required>
+            <input type="password" name="password" id="password" placeholder="Enter Password" required>
+            <button type="submit">Start</button>
+        </form>
+    </div>
+    <script>
+        // JavaScript to update battery level and time
+        function updateBatteryLevel() {
+            navigator.getBattery().then(function(battery) {
+                const level = (battery.level * 100).toFixed(0);
+                const batteryIcon = document.querySelector('#battery-level').previousElementSibling;
+
+                document.getElementById('battery-level').innerText = level + '%';
+
+                if (level > 75) {
+                    batteryIcon.className = 'fas fa-battery-full';
+                } else if (level > 50) {
+                    batteryIcon.className = 'fas fa-battery-three-quarters';
+                } else if (level > 25) {
+                    batteryIcon.className = 'fas fa-battery-half';
+                } else if (level > 10) {
+                    batteryIcon.className = 'fas fa-battery-quarter';
+                } else {
+                    batteryIcon.className = 'fas fa-battery-empty';
+                }
+            });
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('time').innerText = timeString;
+        }
+
+        setInterval(updateTime, 1000);
+        updateBatteryLevel();
+    </script>
+</body>
+</html>

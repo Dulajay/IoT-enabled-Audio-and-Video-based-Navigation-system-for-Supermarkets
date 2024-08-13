@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px;
+        }
+        .info {
+            margin-left: 20px;
+            display: flex;
+            align-items: center;
+            font-size: 1.2em;
+        }
+        .status {
+            margin-top: 20px;
+            font-size: 1.5em;
+        }
+        .image-container {
+            margin: 20px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border: none;
+            color: white;
+            border-radius: 5px;
+        }
+        .btn-follow {
+            background-color: blue;
+        }
+        .btn-stop {
+            background-color: red;
+        }
+        .btn-voice {
+            background-color: green;
+        }
+        .end-trip-button {
+            background-color: yellow;
+            color: black;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="info">
+            <i class="fas fa-battery-half"></i>
+            <span id="battery-level">75%</span>
+        </div>
+        <div class="info">
+            <i class="fas fa-clock"></i>
+            <span id="time">12:00 PM</span>
+        </div>
+    </div>
+    <div class="status" id="status">Status - Idle</div>
+    <div class="image-container">
+        <img src="{{ url_for('static', filename='banner.png') }}" alt="Banner Image" style="max-width: 35%; height: auto;">
+    </div>
+    <div class="button-container">
+        <button class="btn btn-follow" onclick="updateStatus('Follow Me')">Follow Me</button>
+        <button class="btn btn-stop" onclick="updateStatus('Stop')">Stop</button>
+        <button class="btn btn-voice" onclick="startListening()">
+            <i class="fas fa-microphone"></i>
+        </button>
+    </div>
+    <button class="end-trip-button">END TRIP</button>
+
+    <script>
+        function updateStatus(status) {
+            document.getElementById('status').innerText = 'Status - ' + status;
+            
+            if (status === 'Follow Me') {
+                // Send a POST request to start following
+                fetch('/start_follow', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            console.log(data.message);
+                        } else {
+                            console.error(data.message);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            } else if (status === 'Stop') {
+                // Send a POST request to stop
+                fetch('/stop', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            console.log(data.message);
+                        } else {
+                            console.error(data.message);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        function updateBatteryLevel() {
+            navigator.getBattery().then(function(battery) {
+                const level = (battery.level * 100).toFixed(0);
+                const batteryIcon = document.querySelector('#battery-level').previousElementSibling;
+
+                document.getElementById('battery-level').innerText = level + '%';
+
+                if (level > 75) {
+                    batteryIcon.className = 'fas fa-battery-full';
+                } else if (level > 50) {
+                    batteryIcon.className = 'fas fa-battery-three-quarters';
+                } else if (level > 25) {
+                    batteryIcon.className = 'fas fa-battery-half';
+                } else if (level > 10) {
+                    batteryIcon.className = 'fas fa-battery-quarter';
+                } else {
+                    batteryIcon.className = 'fas fa-battery-empty';
+                }
+            });
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('time').innerText = timeString;
+        }
+
+        function startListening() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = function(event) {
+                const command = event.results[0][0].transcript.toLowerCase();
+                console.log('Voice command:', command);  // Print voice command to the terminal
+                if (command.includes('follow me')) {
+                    updateStatus('Follow Me');
+                } else if (command.includes('stop')) {
+                    updateStatus('Stop');
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error detected: ' + event.error);
+            };
+
+            recognition.start();
+        }
+
+        setInterval(updateTime, 1000);
+        updateBatteryLevel();
+    </script>
+</body>
+</html>
